@@ -11,6 +11,5 @@ class ForntMiddleware(BaseHTTPMiddleware):
 	async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Coroutine[Any, Any, Response]:
 		headers = dict(request.scope['headers'])
 		headers[b'uid'] = b'123'
-		request.scope['headers'] = [(k, v) for k, v in headers.items()]
-		response = await call_next(request)
-		return response
+		request.scope['headers'] = list(headers.items())
+		return await call_next(request)
