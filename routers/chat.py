@@ -33,19 +33,24 @@ async def chat(chat: Chat):
 	callback = AsyncIteratorCallbackHandler()
 	llm = GetLLM(chat.model, callback)
 	memory.chat_memory.add_user_message(chat.prompt)
-	resp = StreamingResponse(generate_stream_response(callback, llm, memory.chat_memory.messages), media_type='text/event-stream')
-	return resp
+	return StreamingResponse(
+		generate_stream_response(callback, llm, memory.chat_memory.messages),
+		media_type='text/event-stream',
+	)
 
 
 @router.post('/doc')
 async def doc(file: UploadFile = File(), prompt: str = Form(), model: str = Form()):
 	print(file.content_type)
-	filepath = 'tmp/' + file.filename
+	filepath = f'tmp/{file.filename}'
 	with open(filepath, 'wb') as buffer:
 		shutil.copyfileobj(file.file, buffer)
 	if file.content_type == 'text/plain':
 		loader = TextLoader(filepath, encoding='utf8')
-	elif file.content_type == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' or file.content_type == 'application/msword':
+	elif file.content_type in [
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+		'application/msword',
+	]:
 		loader = UnstructuredWordDocumentLoader(filepath)
 	elif file.content_type == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 		loader = UnstructuredExcelLoader(filepath)
@@ -60,6 +65,7 @@ async def doc(file: UploadFile = File(), prompt: str = Form(), model: str = Form
 
 	def cb():
 		qa({'question': prompt, 'chat_history': []})
+
 	thread = threading.Thread(target=cb)
 	thread.start()
 

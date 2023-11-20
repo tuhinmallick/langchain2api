@@ -20,8 +20,5 @@ class CustomStreamingIteratorCallbackHandler(StreamingStdOutCallbackHandler):
 	def generate_tokens(self) -> Generator:
 		while not self.finish:  # or self.tokens:
 			if self.tokens:
-				token = self.tokens.pop(0)
-				yield token
-			else:
-				pass
+				yield self.tokens.pop(0)
 				# time.sleep(0.02)  # wait for a new token
